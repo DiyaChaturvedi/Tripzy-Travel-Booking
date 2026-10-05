@@ -1,4 +1,4 @@
-# ✈ VoyageQuest - Online Travel Booking Platform
+# Tripzy-Travel-Booking 
 
 > **Comprehensive Full-Stack Java Web Application & College Project**  
 > Built with **Core Java JDK (Standard `HttpServer`)**, **JDBC**, **MySQL**, and a **Modern Responsive Multi-Page Web Frontend** (with dual Desktop Swing UI support).  
