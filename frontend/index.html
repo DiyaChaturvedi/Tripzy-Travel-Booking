@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoyageQuest - Online Travel Booking Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Top Demo Bar for College Viva Presentation -->
+  <div class="demo-bar">
+    <span>🎓 <b>College Project Demo Mode:</b> <span id="demoUserText">Not logged in</span></span>
+    <div>
+      <span>Quick Switch:</span>
+      <button onclick="Auth.quickDemoLogin('traveler')">Traveler (John)</button>
+      <button onclick="Auth.quickDemoLogin('agent')">Travel Agent (Skyline)</button>
+      <button onclick="Auth.quickDemoLogin('admin')">Admin</button>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">✈ Voyage<span>Quest</span></a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="flights.html">Flights</a></li>
+        <li><a href="hotels.html">Hotels</a></li>
+        <li><a href="cars.html">Rental Cars</a></li>
+        <li><a href="packages.html">Packages</a></li>
+        <li><a href="my-bookings.html">My Bookings</a></li>
+        <li><a href="itinerary.html">Itinerary</a></li>
+      </ul>
+      <div class="nav-auth" id="navAuth">
+        <!-- Injected dynamically by Auth.renderNavbar() -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Explore. Book. Travel.</h1>
+    <p>Discover India's top tourist destinations, reserve flights, book boutique hotels, rent cars, and customize dream tour packages with instant confirmation.</p>
+  </section>
+
+  <!-- Quick Travel Search Widget -->
+  <div class="search-widget">
+    <div class="search-tabs">
+      <button class="search-tab-btn active" onclick="switchSearchTab('flights')">✈ Flights</button>
+      <button class="search-tab-btn" onclick="switchSearchTab('hotels')">🏨 Hotels</button>
+      <button class="search-tab-btn" onclick="switchSearchTab('cars')">🚗 Rental Cars</button>
+      <button class="search-tab-btn" onclick="switchSearchTab('packages')">🎒 Tour Packages</button>
+    </div>
+
+    <!-- Flights Search Form -->
+    <div id="searchFormFlights" class="search-fields-grid">
+      <div class="form-group" style="margin:0;">
+        <label>Origin</label>
+        <input type="text" id="flightOrigin" class="form-control" placeholder="e.g. Delhi" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Destination</label>
+        <input type="text" id="flightDest" class="form-control" placeholder="e.g. Mumbai" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Travel Date</label>
+        <input type="date" id="flightDate" class="form-control" />
+      </div>
+      <button class="btn btn-accent btn-block" onclick="executeSearch('flights')">Search</button>
+    </div>
+
+    <!-- Hotels Search Form -->
+    <div id="searchFormHotels" class="search-fields-grid" style="display:none;">
+      <div class="form-group" style="margin:0;">
+        <label>Location / City</label>
+        <input type="text" id="hotelLocation" class="form-control" placeholder="e.g. Goa, Manali, Jaipur" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Check-in Date</label>
+        <input type="date" id="hotelCheckIn" class="form-control" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Max Price (₹)</label>
+        <input type="number" id="hotelPrice" class="form-control" placeholder="Any" />
+      </div>
+      <button class="btn btn-accent btn-block" onclick="executeSearch('hotels')">Search</button>
+    </div>
+
+    <!-- Rental Cars Search Form -->
+    <div id="searchFormCars" class="search-fields-grid" style="display:none;">
+      <div class="form-group" style="margin:0;">
+        <label>Pickup City</label>
+        <input type="text" id="carCity" class="form-control" placeholder="e.g. Delhi, Goa, Mumbai" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Car Type</label>
+        <select id="carTypeSelect" class="form-control">
+          <option value="">All Categories</option>
+          <option value="SUV">SUV</option>
+          <option value="Sedan">Sedan</option>
+          <option value="Hatchback">Hatchback</option>
+          <option value="Luxury">Luxury</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Max Price/Day</label>
+        <input type="number" id="carMaxPrice" class="form-control" placeholder="Any" />
+      </div>
+      <button class="btn btn-accent btn-block" onclick="executeSearch('cars')">Search</button>
+    </div>
+
+    <!-- Packages Search Form -->
+    <div id="searchFormPackages" class="search-fields-grid" style="display:none;">
+      <div class="form-group" style="margin:0; grid-column: span 3;">
+        <label>Search Keyword or Destination</label>
+        <input type="text" id="packageKeyword" class="form-control" placeholder="e.g. Beach, Adventure, Kashmir, Goa..." />
+      </div>
+      <button class="btn btn-accent btn-block" onclick="executeSearch('packages')">Search</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- 1. Popular Destinations -->
+    <section style="margin-bottom: 50px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Popular Destinations</h2>
+          <p class="section-subtitle">Top curated Indian tourism destinations with rich heritage and natural beauty.</p>
+        </div>
+      </div>
+      <div class="grid" id="destinationsGrid">
+        <p style="color:var(--text-muted);">Loading destinations...</p>
+      </div>
+    </section>
+
+    <!-- 2. Popular Flights -->
+    <section style="margin-bottom: 50px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Popular Flights</h2>
+          <p class="section-subtitle">Book approved non-stop domestic routes at transparent rates.</p>
+        </div>
+        <a href="flights.html" class="btn btn-outline">View All Flights →</a>
+      </div>
+      <div class="grid" id="flightsGrid">
+        <p style="color:var(--text-muted);">Loading flights...</p>
+      </div>
+    </section>
+
+    <!-- 3. Featured Hotels -->
+    <section style="margin-bottom: 50px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Featured Partner Hotels</h2>
+          <p class="section-subtitle">Verified partner luxury lodges, heritage havelis, and beach resorts.</p>
+        </div>
+        <a href="hotels.html" class="btn btn-outline">Explore All Hotels →</a>
+      </div>
+      <div class="grid" id="hotelsGrid">
+        <p style="color:var(--text-muted);">Loading hotels...</p>
+      </div>
+    </section>
+
+    <!-- 4. Rental Cars -->
+    <section style="margin-bottom: 50px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Rental Cars</h2>
+          <p class="section-subtitle">Self-drive SUVs, sedans, and luxury vehicles with instant confirmation.</p>
+        </div>
+        <a href="cars.html" class="btn btn-outline">Browse Rental Fleet →</a>
+      </div>
+      <div class="grid" id="carsGrid">
+        <p style="color:var(--text-muted);">Loading rental cars...</p>
+      </div>
+    </section>
+
+    <!-- 5. Holiday Packages -->
+    <section style="margin-bottom: 60px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Trending Holiday Packages</h2>
+          <p class="section-subtitle">All-inclusive tour packages with accommodation, sightseeing, and dining.</p>
+        </div>
+        <a href="packages.html" class="btn btn-outline">See All Packages →</a>
+      </div>
+      <div class="grid" id="packagesGrid">
+        <p style="color:var(--text-muted);">Loading tour packages...</p>
+      </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:40px 30px; margin-bottom:40px;">
+      <div style="text-align:center; max-width:650px; margin:0 auto 35px;">
+        <h2 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">Why Book With VoyageQuest?</h2>
+        <p style="color:var(--text-muted); font-size:0.95rem;">A trusted full-stack Java platform connecting travelers directly with licensed travel agencies and verified operators.</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:25px; text-align:center;">
+        <div>
+          <div style="font-size:2.5rem; margin-bottom:12px;">🛡</div>
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">Verified Listings</h3>
+          <p style="font-size:0.88rem; color:var(--text-muted);">All agent flights, hotels, and cars must pass strict administrative verification before appearing in catalog.</p>
+        </div>
+        <div>
+          <div style="font-size:2.5rem; margin-bottom:12px;">⚡</div>
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">Instant Confirmation</h3>
+          <p style="font-size:0.88rem; color:var(--text-muted);">Real-time inventory deduction for seats and rooms with immediate booking reference voucher generation.</p>
+        </div>
+        <div>
+          <div style="font-size:2.5rem; margin-bottom:12px;">🗺</div>
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">Unified Itinerary</h3>
+          <p style="font-size:0.88rem; color:var(--text-muted);">Combines flights, hotel check-ins, and car rentals into a single chronological trip timeline.</p>
+        </div>
+        <div>
+          <div style="font-size:2.5rem; margin-bottom:12px;">💬</div>
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:6px;">Direct Interaction</h3>
+          <p style="font-size:0.88rem; color:var(--text-muted);">Built-in feedback and messaging between travelers and operators for special requests.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>✈ VoyageQuest Platform</h4>
+        <p style="font-size:0.88rem; line-height:1.6;">A complete full-stack Java, JDBC, MySQL, and REST API travel booking platform designed as a comprehensive B.Tech CSE college project.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="flights.html">Flight Search</a></li>
+          <li><a href="hotels.html">Hotel Reservations</a></li>
+          <li><a href="cars.html">Car Rentals</a></li>
+          <li><a href="packages.html">Holiday Packages</a></li>
+          <li><a href="itinerary.html">Travel Itinerary</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Role Portals</h4>
+        <ul>
+          <li><a href="traveler-dashboard.html">Traveler Dashboard</a></li>
+          <li><a href="agent-dashboard.html">Travel Agent Dashboard</a></li>
+          <li><a href="admin-dashboard.html">Admin Control Center</a></li>
+          <li><a href="login.html">Login Portal</a></li>
+          <li><a href="register.html">Account Registration</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support & Viva Info</h4>
+        <ul>
+          <li>Email: support@travelbooking.com</li>
+          <li>Phone: +91 98765 43210</li>
+          <li>Stack: Java + MySQL + HTTP REST</li>
+          <li>Status: Fully Functional</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 VoyageQuest Online Travel Booking Platform. All rights reserved. (College Demonstration Project)</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    function switchSearchTab(tab) {
+      document.querySelectorAll('.search-tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('searchFormFlights').style.display = tab === 'flights' ? 'grid' : 'none';
+      document.getElementById('searchFormHotels').style.display = tab === 'hotels' ? 'grid' : 'none';
+      document.getElementById('searchFormCars').style.display = tab === 'cars' ? 'grid' : 'none';
+      document.getElementById('searchFormPackages').style.display = tab === 'packages' ? 'grid' : 'none';
+    }
+
+    function executeSearch(tab) {
+      if (tab === 'flights') {
+        const origin = document.getElementById('flightOrigin').value.trim();
+        const dest = document.getElementById('flightDest').value.trim();
+        const date = document.getElementById('flightDate').value.trim();
+        window.location.href = `flights.html?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&date=${encodeURIComponent(date)}`;
+      } else if (tab === 'hotels') {
+        const loc = document.getElementById('hotelLocation').value.trim();
+        const price = document.getElementById('hotelPrice').value.trim();
+        window.location.href = `hotels.html?location=${encodeURIComponent(loc)}&maxPrice=${encodeURIComponent(price)}`;
+      } else if (tab === 'cars') {
+        const city = document.getElementById('carCity').value.trim();
+        const type = document.getElementById('carTypeSelect').value;
+        const price = document.getElementById('carMaxPrice').value.trim();
+        window.location.href = `cars.html?location=${encodeURIComponent(city)}&carType=${encodeURIComponent(type)}&maxPrice=${encodeURIComponent(price)}`;
+      } else if (tab === 'packages') {
+        const kw = document.getElementById('packageKeyword').value.trim();
+        window.location.href = `packages.html?keyword=${encodeURIComponent(kw)}`;
+      }
+    }
+
+    // Load initial showcase data
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Destinations
+      try {
+        const dests = await API.getDestinations();
+        const grid = document.getElementById('destinationsGrid');
+        if (Array.isArray(dests) && dests.length > 0) {
+          grid.innerHTML = dests.slice(0, 4).map(d => `
+            <div class="card">
+              <img src="${getDestinationImageUrl(d)}"
+                   class="card-img" alt="${escapeHtml(d.name)}" onerror="handleImageError(this, 'destination')" />
+              <div class="card-body">
+                <span class="badge badge-primary" style="margin-bottom:8px;">${d.state}</span>
+                <h3 class="card-title">${d.name}</h3>
+                <p class="card-desc">${d.description}</p>
+                <div class="card-meta">
+                  <span>📍 <b>Attractions:</b> ${d.attractions}</span>
+                  <span>🗓 <b>Best Time:</b> ${d.bestTime}</span>
+                </div>
+                <div class="card-footer">
+                  <a href="packages.html?destId=${d.id}" class="btn btn-sm btn-outline btn-block">Explore Packages →</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Destinations load error:', e);
+      }
+
+      // 2. Flights
+      try {
+        const flights = await API.getFlights();
+        const grid = document.getElementById('flightsGrid');
+        if (Array.isArray(flights) && flights.length > 0) {
+          grid.innerHTML = flights.slice(0, 3).map(f => `
+            <div class="card">
+              <div class="card-body">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                  <span class="badge badge-info">✈ ${f.airline}</span>
+                  <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted);">${f.flightNumber}</span>
+                </div>
+                <h3 class="card-title">${f.origin} → ${f.destination}</h3>
+                <div class="card-meta" style="margin-top:10px;">
+                  <span>🗓 Departure: <b>${f.departureDate}</b></span>
+                  <span>⏰ Time: <b>${f.departureTime} - ${f.arrivalTime}</b></span>
+                  <span>💺 Available Seats: <b>${f.availableSeats}</b></span>
+                </div>
+                <div class="card-footer">
+                  <div class="price-tag">${formatCurrency(f.price)} <small>/ passenger</small></div>
+                  <a href="booking.html?type=flight&id=${f.id}" class="btn btn-sm btn-primary">Book Flight</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Flights load error:', e);
+      }
+
+      // 3. Hotels
+      try {
+        const hotels = await API.getHotels();
+        const grid = document.getElementById('hotelsGrid');
+        if (Array.isArray(hotels) && hotels.length > 0) {
+          grid.innerHTML = hotels.slice(0, 3).map(h => `
+            <div class="card">
+              <img src="${getHotelImageUrl(h)}"
+                   class="card-img" alt="${escapeHtml(h.hotelName)}" onerror="handleImageError(this, 'hotel')" />
+              <div class="card-body">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span class="badge badge-warning">⭐ ${h.rating} / 5.0</span>
+                  <span class="badge badge-primary">${h.roomType}</span>
+                </div>
+                <h3 class="card-title">${h.hotelName}</h3>
+                <p class="card-desc">${h.description}</p>
+                <div class="card-meta">
+                  <span>📍 Location: ${h.location || h.address}</span>
+                  <span>🏨 Rooms Available: <b>${h.availableRooms}</b></span>
+                </div>
+                <div class="card-footer">
+                  <div class="price-tag">${formatCurrency(h.pricePerNight)} <small>/ night</small></div>
+                  <a href="booking.html?type=hotel&id=${h.id}" class="btn btn-sm btn-primary">Book Room</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Hotels load error:', e);
+      }
+
+      // 4. Cars
+      try {
+        const cars = await API.getCars();
+        const grid = document.getElementById('carsGrid');
+        if (Array.isArray(cars) && cars.length > 0) {
+          grid.innerHTML = cars.slice(0, 3).map(c => `
+            <div class="card">
+              <img src="${getCarImageUrl(c)}"
+                   class="card-img" alt="${escapeHtml(c.carName)}" onerror="handleImageError(this, 'car')" />
+              <div class="card-body">
+                <span class="badge badge-info" style="margin-bottom:8px;">${c.carType} • ${c.brand}</span>
+                <h3 class="card-title">${c.carName}</h3>
+                <div class="card-meta">
+                  <span>📍 Pickup Location: <b>${c.location}</b></span>
+                  <span>🚗 Units Available: <b>${c.availableUnits}</b></span>
+                </div>
+                <div class="card-footer">
+                  <div class="price-tag">${formatCurrency(c.pricePerDay)} <small>/ day</small></div>
+                  <a href="booking.html?type=car&id=${c.id}" class="btn btn-sm btn-primary">Rent Car</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Cars load error:', e);
+      }
+
+      // 5. Packages
+      try {
+        const pkgs = await API.getPackages();
+        const grid = document.getElementById('packagesGrid');
+        if (Array.isArray(pkgs) && pkgs.length > 0) {
+          grid.innerHTML = pkgs.slice(0, 3).map(p => `
+            <div class="card">
+              <img src="${getPackageImageUrl(p)}"
+                   class="card-img" alt="${escapeHtml(p.packageName)}" onerror="handleImageError(this, 'package')" />
+              <div class="card-body">
+                <span class="badge badge-success" style="margin-bottom:8px;">${p.durationDays} Days / ${p.durationNights} Nights</span>
+                <h3 class="card-title">${p.packageName}</h3>
+                <p class="card-desc">${p.description}</p>
+                <div class="card-meta">
+                  <span>📍 <b>Places Covered:</b> ${p.placesCovered}</span>
+                </div>
+                <div class="card-footer">
+                  <div class="price-tag">${formatCurrency(p.pricePerPerson)} <small>/ person</small></div>
+                  <a href="booking.html?type=package&id=${p.id}" class="btn btn-sm btn-primary">Book Package</a>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Packages load error:', e);
+      }
+    });
+  </script>
+</body>
+</html>
